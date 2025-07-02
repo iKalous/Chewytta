@@ -1,154 +1,139 @@
 // src/pages/Login.tsx
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+
+interface LoginForm {
+    username: string;
+    password: string;
+}
 
 const Login: React.FC = () => {
-    const [loginType, setLoginType] = useState<'phone' | 'email' | 'username'>('username');
-    const [value, setValue] = useState('');
-    const [password, setPassword] = useState('');
+    const [loginType, setLoginType] = useState<'username' | 'phone' | 'email'>('username');
 
-    // src/pages/Login.tsx
+    const {
+        register,
+        handleSubmit,
+        formState: { errors },
+        setValue,
+    } = useForm<LoginForm>();
 
-    // src/pages/Login.tsx
-
-    const handleLogin = (e: React.FormEvent) => {
-        e.preventDefault();
-        console.log('登录中...', { loginType, value, password });
-
-        // 模拟登录成功
+    const onSubmit = (data: LoginForm) => {
         localStorage.setItem('isLoggedIn', 'true');
+        const userRole = data.username === 'root' ? 'admin' : 'user';
+        localStorage.setItem('role', userRole);
+        window.location.href = userRole === 'admin' ? '/admin' : '/';
+    };
 
-        // 设置角色逻辑：如果用户名是 root，则角色为 admin，否则为 user
-        if (value === 'root') {
-            localStorage.setItem('role', 'admin');
-            window.location.href = '/admin'; // 跳转到管理员首页
-        } else {
-            localStorage.setItem('role', 'user');
-            window.location.href = '/'; // 跳转到普通用户首页
+    // 切换登录方式时动态设置字段
+    const handleLoginTypeChange = (type: 'username' | 'phone' | 'email') => {
+        setLoginType(type);
+        if (type === 'username') {
+            setValue('username', '');
+        } else if (type === 'phone') {
+            setValue('username', '');
+        } else if (type === 'email') {
+            setValue('username', '');
         }
     };
 
-
-
-
-    // 如果是 root 用户，则禁止切换登录方式
-    const isRootLogin = value === 'root';
-
     return (
-        <div className="flex min-h-[100vh] w-full items-center justify-center bg-gray-100">
-            <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-md">
-                <h2 className="text-2xl font-bold text-center text-gray-700">登录</h2>
+        <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+            <div className="bg-white p-8 rounded shadow-md w-full max-w-sm">
+                <h1 className="text-2xl font-bold mb-6 text-center">登录</h1>
 
-                <form onSubmit={handleLogin} className="space-y-4">
-                    {/* 登录方式切换 */}
-                    <div className="flex justify-around mb-4">
-                        <label
-                            className={`inline-flex items-center space-x-2 ${
-                                isRootLogin ? 'opacity-50 cursor-not-allowed' : ''
-                            }`}
-                        >
-                            <input
-                                type="radio"
-                                className="form-radio h-4 w-4 text-blue-600"
-                                checked={loginType === 'username'}
-                                onChange={() => !isRootLogin && setLoginType('username')}
-                                disabled={isRootLogin}
-                            />
-                            <span className="text-gray-700">用户名</span>
-                        </label>
+                {/* 登录方式切换 */}
+                <div className="flex justify-around mb-4 border-b">
+                    <button
+                        type="button"
+                        onClick={() => handleLoginTypeChange('username')}
+                        className={`pb-2 ${loginType === 'username' ? 'border-b-2 border-blue-600 font-medium' : ''}`}
+                    >
+                        用户名
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => handleLoginTypeChange('phone')}
+                        className={`pb-2 ${loginType === 'phone' ? 'border-b-2 border-blue-600 font-medium' : ''}`}
+                    >
+                        手机号
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => handleLoginTypeChange('email')}
+                        className={`pb-2 ${loginType === 'email' ? 'border-b-2 border-blue-600 font-medium' : ''}`}
+                    >
+                        邮箱
+                    </button>
+                </div>
 
-                        <label
-                            className={`inline-flex items-center space-x-2 ${
-                                isRootLogin ? 'opacity-50 cursor-not-allowed' : ''
-                            }`}
-                        >
-                            <input
-                                type="radio"
-                                className="form-radio h-4 w-4 text-blue-600"
-                                checked={loginType === 'phone'}
-                                onChange={() => !isRootLogin && setLoginType('phone')}
-                                disabled={isRootLogin}
-                            />
-                            <span className="text-gray-700">手机号</span>
-                        </label>
-
-                        <label
-                            className={`inline-flex items-center space-x-2 ${
-                                isRootLogin ? 'opacity-50 cursor-not-allowed' : ''
-                            }`}
-                        >
-                            <input
-                                type="radio"
-                                className="form-radio h-4 w-4 text-blue-600"
-                                checked={loginType === 'email'}
-                                onChange={() => !isRootLogin && setLoginType('email')}
-                                disabled={isRootLogin}
-                            />
-                            <span className="text-gray-700">邮箱</span>
-                        </label>
-                    </div>
-
-                    {/* 输入框 */}
+                <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                    {/* 动态输入框 */}
                     <div>
-                        {loginType === 'username' ? (
-                            <input
-                                type="text"
-                                placeholder="用户名"
-                                value={value}
-                                onChange={(e) => setValue(e.target.value)}
-                                className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
-                                required
-                            />
-                        ) : loginType === 'phone' ? (
-                            <input
-                                type="tel"
-                                placeholder="手机号"
-                                value={value}
-                                onChange={(e) => setValue(e.target.value)}
-                                className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
-                                required
-                            />
-                        ) : (
-                            <input
-                                type="email"
-                                placeholder="邮箱"
-                                value={value}
-                                onChange={(e) => setValue(e.target.value)}
-                                className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
-                                required
-                            />
+                        <label className="block text-sm font-medium mb-1">
+                            {loginType === 'username' ? '用户名' : loginType === 'phone' ? '手机号' : '邮箱'}
+                        </label>
+                        <input
+                            type="text"
+                            {...register('username', {
+                                required: `${loginType === 'username' ? '用户名' : loginType === 'phone' ? '手机号' : '邮箱'} 是必填项`,
+                                validate: (value) => {
+                                    if (loginType === 'phone' && !/^1[3-9]\d{9}$/.test(value)) {
+                                        return '请输入正确的手机号';
+                                    }
+                                    if (loginType === 'email' && !/\S+@\S+\.\S+/.test(value)) {
+                                        return '请输入正确的邮箱';
+                                    }
+                                    return true;
+                                },
+                            })}
+                            placeholder={
+                                loginType === 'username'
+                                    ? '请输入用户名'
+                                    : loginType === 'phone'
+                                        ? '请输入手机号'
+                                        : '请输入邮箱'
+                            }
+                            className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                        {errors.username && (
+                            <p className="mt-1 text-red-500 text-sm">{errors.username.message}</p>
                         )}
                     </div>
 
-                    {/* 密码输入框 */}
+                    {/* 密码 */}
                     <div>
+                        <label className="block text-sm font-medium mb-1">密码</label>
                         <input
                             type="password"
-                            placeholder="密码"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
-                            required
+                            {...register('password', {
+                                required: '密码是必填项',
+                                minLength: {
+                                    value: 6,
+                                    message: '密码至少 6 个字符',
+                                },
+                            })}
+                            className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
+                        {errors.password && (
+                            <p className="mt-1 text-red-500 text-sm">{errors.password.message}</p>
+                        )}
                     </div>
 
                     {/* 登录按钮 */}
                     <button
                         type="submit"
-                        className="w-full py-2 mt-2 text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full py-2 mt-2 bg-blue-600 text-white rounded hover:bg-blue-700"
                     >
                         登录
                     </button>
                 </form>
 
                 {/* 注册链接 */}
-                <div className="text-center">
-                    <p className="text-sm text-gray-600">
-                        没有账号？{' '}
-                        <Link to="/register" className="text-blue-600 hover:underline">
-                            注册
-                        </Link>
-                    </p>
+                <div className="mt-4 text-center">
+                    <Link to="/register" className="text-blue-600 hover:underline">
+                        ← 没有账号？立即注册
+                    </Link>
                 </div>
             </div>
         </div>

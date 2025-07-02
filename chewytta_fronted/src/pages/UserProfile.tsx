@@ -22,13 +22,23 @@ const UserProfile: React.FC = () => {
     };
 
     const handleSavePassword = () => {
+        if (!password) {
+            alert('请输入旧密码');
+            return;
+        }
+        if (newPassword.length < 6) {
+            alert('新密码长度不能小于6位');
+            return;
+        }
         if (newPassword !== confirmPassword) {
             alert('两次输入的密码不一致');
             return;
         }
-        // 这里可以添加调用接口修改密码的逻辑
+
+        // TODO: 这里可以调用接口提交修改
         alert('密码已修改');
     };
+
 
     const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -125,6 +135,19 @@ const UserProfile: React.FC = () => {
                 <div className="mt-6 text-center">
                     <Link to="/user/boxes" className="text-blue-600 hover:underline">
                         → 查看我抽中的盲盒
+                    </Link>
+                </div>
+                {/* 跳转到收藏页 */}
+                <div className="mt-6 text-center">
+                    <Link to="/user/favorites" className="text-blue-600 hover:underline">
+                        → 查看我的收藏
+                    </Link>
+                </div>
+
+                {/* 返回首页 */}
+                <div className="mt-4 text-center">
+                    <Link to="/" className="text-blue-600 hover:underline">
+                        ← 返回首页
                     </Link>
                 </div>
                 {/* 退出登录 */}

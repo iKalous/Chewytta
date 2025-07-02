@@ -19,119 +19,172 @@ import UserBoxes from './pages/UserBoxes';
 import AdminUserPage from './pages/AdminUserPage';
 import AdminUsersList from './pages/AdminUsersList';
 import Register from './pages/Register';
+import ErrorPage from './pages/ErrorPage';
 
 // 组件
 import ProtectedRoute from './components/ProtectedRoute';
+import { ToastProvider } from './components/ToastProvider';
+import ErrorBoundary from './components/ErrorBoundary';
+
+// 引入 Context Provider
+import { BlindBoxProvider } from './context/BlindBoxContent.tsx';
 
 // 创建路由
 const router = createBrowserRouter([
     {
         path: '/login',
-        element: <Login />,
+        element: (
+            <ErrorBoundary>
+                <Login />
+            </ErrorBoundary>
+        ),
     },
     {
         path: '/',
         element: (
-            <ProtectedRoute>
-                <Home />
-            </ProtectedRoute>
+            <ErrorBoundary>
+                <ProtectedRoute>
+                    <Home />
+                </ProtectedRoute>
+            </ErrorBoundary>
         ),
     },
     {
         path: '/box/:id',
         element: (
-            <ProtectedRoute>
-                <BoxDetail />
-            </ProtectedRoute>
+            <ErrorBoundary>
+                <ProtectedRoute>
+                    <BoxDetail />
+                </ProtectedRoute>
+            </ErrorBoundary>
         ),
     },
     {
         path: '/admin',
         element: (
-            <ProtectedRoute requireAdmin={true}>
-                <AdminDashboard />
-            </ProtectedRoute>
+            <ErrorBoundary>
+                <ProtectedRoute requireAdmin={true}>
+                    <AdminDashboard />
+                </ProtectedRoute>
+            </ErrorBoundary>
         ),
     },
     {
         path: '/admin/boxes',
         element: (
-            <ProtectedRoute requireAdmin={true}>
-                <AdminBoxesList />
-            </ProtectedRoute>
+            <ErrorBoundary>
+                <ProtectedRoute requireAdmin={true}>
+                    <AdminBoxesList />
+                </ProtectedRoute>
+            </ErrorBoundary>
         ),
     },
     {
         path: '/admin/boxes/new',
         element: (
-            <ProtectedRoute requireAdmin={true}>
-                <AdminBoxNew />
-            </ProtectedRoute>
+            <ErrorBoundary>
+                <ProtectedRoute requireAdmin={true}>
+                    <AdminBoxNew />
+                </ProtectedRoute>
+            </ErrorBoundary>
         ),
     },
     {
         path: '/admin/boxes/edit/:id',
         element: (
-            <ProtectedRoute requireAdmin={true}>
-                <AdminBoxEdit />
-            </ProtectedRoute>
+            <ErrorBoundary>
+                <ProtectedRoute requireAdmin={true}>
+                    <AdminBoxEdit />
+                </ProtectedRoute>
+            </ErrorBoundary>
         ),
     },
     {
         path: '/admin/user',
         element: (
-            <ProtectedRoute requireAdmin={true}>
-                <AdminUserPage />
-            </ProtectedRoute>
+            <ErrorBoundary>
+                <ProtectedRoute requireAdmin={true}>
+                    <AdminUserPage />
+                </ProtectedRoute>
+            </ErrorBoundary>
         ),
     },
     {
         path: '/admin/users',
         element: (
-            <ProtectedRoute requireAdmin={true}>
-                <AdminUsersList />
-            </ProtectedRoute>
+            <ErrorBoundary>
+                <ProtectedRoute requireAdmin={true}>
+                    <AdminUsersList />
+                </ProtectedRoute>
+            </ErrorBoundary>
         ),
     },
     {
         path: '/box/:id/result',
-        element: <BoxResultPage />,
+        element: (
+            <ErrorBoundary>
+                <BoxResultPage />
+            </ErrorBoundary>
+        ),
     },
     {
         path: '/user/profile',
         element: (
-            <ProtectedRoute>
-                <UserProfile />
-            </ProtectedRoute>
+            <ErrorBoundary>
+                <ProtectedRoute>
+                    <UserProfile />
+                </ProtectedRoute>
+            </ErrorBoundary>
         ),
     },
     {
         path: '/user/favorites',
         element: (
-            <ProtectedRoute>
-                <UserFavorites />
-            </ProtectedRoute>
+            <ErrorBoundary>
+                <ProtectedRoute>
+                    <UserFavorites />
+                </ProtectedRoute>
+            </ErrorBoundary>
         ),
     },
     {
         path: '/user/boxes',
         element: (
-            <ProtectedRoute>
-                <UserBoxes />
-            </ProtectedRoute>
+            <ErrorBoundary>
+                <ProtectedRoute>
+                    <UserBoxes />
+                </ProtectedRoute>
+            </ErrorBoundary>
         ),
     },
     {
         path: '/register',
-        element: <Register />,
+        element: (
+            <ErrorBoundary>
+                <Register />
+            </ErrorBoundary>
+        ),
+    },
+    {
+        path: '/error',
+        element: (
+            <ErrorBoundary>
+                <ErrorPage />
+            </ErrorBoundary>
+        ),
     },
 ]);
 
-// 引入 App 根组件
+// App 根组件
 import App from './App';
 
+// 渲染入口
 ReactDOM.createRoot(document.getElementById('root')!).render(
     <React.StrictMode>
-        <App router={router} />
+        <ToastProvider>
+            <BlindBoxProvider> {/* ✅ 这里包裹整个 App */}
+                <App router={router} />
+            </BlindBoxProvider>
+        </ToastProvider>
     </React.StrictMode>
 );

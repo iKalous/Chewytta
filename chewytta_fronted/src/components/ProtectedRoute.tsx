@@ -1,7 +1,8 @@
-// src/components/ProtectedRoute.tsx
-import React, { useState } from 'react';
+// ProtectedRoute.tsx
+import React, { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
-import Toast from './Toast'; // 导入 Toast
+import { globalToast } from '../utils/globalToast';
+import NoPermission from '../pages/NoPermission'; // 引入新页面
 
 const isAuthenticated = () => {
     return localStorage.getItem('isLoggedIn') === 'true';
@@ -13,28 +14,34 @@ const isAdmin = () => {
 
 interface ProtectedRouteProps {
     children: React.ReactNode;
-    requireAdmin?: boolean; // 是否需要管理员权限
+    requireAdmin?: boolean;
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requireAdmin }) => {
-    const [showToast, setShowToast] = useState(false);
+    const [redirect, setRedirect] = useState(false);
+    const [noPermission, setNoPermission] = useState(false);
 
-    if (!isAuthenticated()) {
-        return <Navigate to="/login" />;
+    useEffect(() => {
+        if (!isAuthenticated()) {
+            setRedirect(true);
+            return;
+        }
+
+        if (requireAdmin && !isAdmin()) {
+            setNoPermission(true); // 直接进入无权限状态
+            globalToast.show();
+        }
+    }, [requireAdmin]);
+
+    if (redirect) {
+        return <Navigate to="/login" replace />;
     }
 
-    if (requireAdmin && !isAdmin()) {
-        setShowToast(true);
-        setTimeout(() => setShowToast(false), 2000); // 显示 2 秒后消失
-        return <Navigate to="/" />;
+    if (noPermission) {
+        return <NoPermission />; // 直接返回无权限页面
     }
 
-    return (
-        <>
-            {children}
-            <Toast message="您没有权限访问该页面" visible={showToast} />
-        </>
-    );
+    return <>{children}</>;
 };
 
 export default ProtectedRoute;

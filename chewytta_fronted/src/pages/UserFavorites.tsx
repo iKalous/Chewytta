@@ -1,35 +1,20 @@
 // src/pages/UserFavorites.tsx
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-
-// 模拟数据：用户收藏的盲盒
-const initialFavorites = [
-    {
-        id: 1,
-        name: '神秘盲盒A',
-        price: 29.9,
-        image: 'https://via.placeholder.com/150',
-    },
-    {
-        id: 2,
-        name: '幸运盲盒B',
-        price: 39.9,
-        image: 'https://via.placeholder.com/150',
-    },
-    {
-        id: 3,
-        name: '限量盲盒C',
-        price: 49.9,
-        image: 'https://via.placeholder.com/150',
-    },
-];
+import useBlindBoxContext from '../hooks/useBlindBoxContent';
 
 const UserFavorites: React.FC = () => {
-    const [favorites, setFavorites] = useState(initialFavorites);
+    const { boxes } = useBlindBoxContext();
 
+    // 模拟用户收藏的 ID（可以替换为 API 或 localStorage）
+    const [favoriteIds, setFavoriteIds] = useState<number[]>([1, 2]);
+
+    // 根据 favoriteIds 过滤出用户收藏的盲盒
+    const favorites = boxes.filter(box => favoriteIds.includes(box.id));
+
+    // 取消收藏
     const handleUnfavorite = (id: number) => {
-        const updated = favorites.filter((item) => item.id !== id);
-        setFavorites(updated);
+        setFavoriteIds(prev => prev.filter(fid => fid !== id));
         alert('已取消收藏');
     };
 
@@ -45,7 +30,7 @@ const UserFavorites: React.FC = () => {
                         {favorites.map((box) => (
                             <div key={box.id} className="bg-gray-100 rounded-lg shadow-md overflow-hidden">
                                 <img
-                                    src={box.image}
+                                    src={box.items[0]?.image || 'https://via.placeholder.com/150'}
                                     alt={box.name}
                                     className="w-full h-40 object-cover"
                                 />
