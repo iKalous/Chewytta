@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { blindBoxes as mockBoxes } from '../data/mockBoxes';
 
-
 const AdminBoxNew: React.FC = () => {
     const navigate = useNavigate();
 
@@ -16,6 +15,8 @@ const AdminBoxNew: React.FC = () => {
     const [items, setItems] = useState([
         { id: Date.now(), name: '', image: '' },
         { id: Date.now() + 1, name: '', image: '' },
+        { id: Date.now() + 2, name: '', image: '' },
+        { id: Date.now() + 3, name: '', image: '' },
     ]);
     const [loading, setLoading] = useState(false);
 
@@ -75,7 +76,6 @@ const AdminBoxNew: React.FC = () => {
             }, 800);
         });
     };
-
 
     return (
         <div className="min-h-screen bg-white text-black py-10">

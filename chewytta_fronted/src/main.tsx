@@ -173,10 +173,22 @@ const router = createBrowserRouter([
             </ErrorBoundary>
         ),
     },
+    {
+        path: '/recharge',
+        element: (
+            <ErrorBoundary>
+                <ProtectedRoute>
+                    <RechargePage />
+                </ProtectedRoute>
+            </ErrorBoundary>
+        ),
+    },
+
 ]);
 
 // App 根组件
 import App from './App';
+import RechargePage from "./pages/RechargePage";
 
 // 渲染入口
 ReactDOM.createRoot(document.getElementById('root')!).render(

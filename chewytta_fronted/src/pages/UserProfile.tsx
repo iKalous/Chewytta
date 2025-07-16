@@ -144,6 +144,13 @@ const UserProfile: React.FC = () => {
                     </Link>
                 </div>
 
+                {/* 跳转到充值页 */}
+                <div className="mt-6 text-center">
+                    <Link to="/recharge" className="text-green-600 hover:underline">
+                        → 点击充值余额
+                    </Link>
+                </div>
+
                 {/* 返回首页 */}
                 <div className="mt-4 text-center">
                     <Link to="/" className="text-blue-600 hover:underline">
