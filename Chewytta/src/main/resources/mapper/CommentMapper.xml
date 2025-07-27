@@ -7,7 +7,10 @@
 
     <!-- 查询某个盲盒下的所有评论 -->
     <select id="selectByBoxId" parameterType="long" resultType="web.project.chewytta.model.Comment">
-        SELECT * FROM comments WHERE box_id = #{boxId}
+        SELECT id, user_id as userId, box_id as boxId, content, created_at as createdAt 
+        FROM comments 
+        WHERE box_id = #{boxId} 
+        ORDER BY created_at DESC
     </select>
 
     <!-- 插入新评论 -->
@@ -20,5 +23,12 @@
     <delete id="deleteById" parameterType="long">
         DELETE FROM comments WHERE id = #{id}
     </delete>
+
+    <!-- 根据ID查询评论 -->
+    <select id="selectById" parameterType="long" resultType="web.project.chewytta.model.Comment">
+        SELECT id, user_id as userId, box_id as boxId, content, created_at as createdAt 
+        FROM comments 
+        WHERE id = #{id}
+    </select>
 
 </mapper>

@@ -5,7 +5,7 @@ const NoPermission: React.FC = () => {
     useEffect(() => {
         // 设置 2 秒后跳转并刷新页面
         const timer = setTimeout(() => {
-            window.location.href = '/';
+            window.location.href = '/home';
         }, 2000);
 
         return () => clearTimeout(timer);

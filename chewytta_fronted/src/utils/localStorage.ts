@@ -10,6 +10,24 @@ interface DrawnBox {
 
 const USER_BOXES_KEY = 'user_boxes';
 
+/**
+ * 从localStorage获取数据
+ * @param key 键名
+ * @returns 值
+ */
+export const getLocalStorage = (key: string): string | null => {
+    return localStorage.getItem(key);
+};
+
+/**
+ * 设置localStorage数据
+ * @param key 键名
+ * @param value 值
+ */
+export const setLocalStorage = (key: string, value: string): void => {
+    localStorage.setItem(key, value);
+};
+
 // 获取当前用户抽中的盲盒列表（模拟用户ID为1）
 export const getUserBoxes = (): DrawnBox[] => {
     const data = localStorage.getItem(USER_BOXES_KEY);

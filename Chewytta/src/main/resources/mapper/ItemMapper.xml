@@ -48,5 +48,11 @@
         DELETE FROM items WHERE box_id = #{boxId}
     </delete>
 
+    <!-- 检查某个款式是否被抽中过（是否在 drawn_boxes 中有引用） -->
+    <select id="isItemReferenced" parameterType="long" resultType="boolean">
+        SELECT COUNT(*) > 0 
+        FROM drawn_boxes 
+        WHERE item_id = #{itemId}
+    </select>
 
 </mapper>

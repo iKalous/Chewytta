@@ -29,22 +29,25 @@ public class UserController {
     @Autowired
     private JwtUtil jwtUtil;
 
-//    @Autowired
-//    private LogoutService logoutService;
+    // @Autowired
+    // private LogoutService logoutService;
 
-//    @PostMapping("/logout")
-//    public ResponseEntity<ApiResponse<Void>> logout(HttpServletRequest request) {
-//        String token = extractJwtFromRequest(request);
-//        if (token != null) {
-//            long expiration = jwtUtil.getExpiration(token).getTime() - System.currentTimeMillis();
-//            logoutService.logout(token, expiration);
-//            return ResponseEntity.ok(ApiResponse.success(null));
-//        } else {
-//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ApiResponse.error("无效的 Token"));
-//        }
-//    }
+    // @PostMapping("/logout")
+    // public ResponseEntity<ApiResponse<Void>> logout(HttpServletRequest request) {
+    // String token = extractJwtFromRequest(request);
+    // if (token != null) {
+    // long expiration = jwtUtil.getExpiration(token).getTime() -
+    // System.currentTimeMillis();
+    // logoutService.logout(token, expiration);
+    // return ResponseEntity.ok(ApiResponse.success(null));
+    // } else {
+    // return
+    // ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ApiResponse.error("无效的
+    // Token"));
+    // }
+    // }
 
-//     提取 Token 工具方法
+    // 提取 Token 工具方法
     private String extractJwtFromRequest(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");
         if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
@@ -75,8 +78,6 @@ public class UserController {
         return null;
     }
 
-
-
     // 用户注册
     @PostMapping("/register")
     @Operation(summary = "用户注册")
@@ -101,9 +102,22 @@ public class UserController {
 
     // 获取所有用户
     @GetMapping
-    @PreAuthorize("hasRole('admin')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @Operation(summary = "获取所有用户")
     public ResponseEntity<ApiResponse<List<User>>> getAllUsers() {
+        System.out.println("UserController.getAllUsers() called");
+
+        // 打印当前认证信息
+        org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder
+                .getContext().getAuthentication();
+        if (auth != null) {
+            System.out.println("Current user: " + auth.getName());
+            System.out.println("Authorities: " + auth.getAuthorities());
+            System.out.println("Principal: " + auth.getPrincipal());
+        } else {
+            System.out.println("No authentication found in SecurityContext");
+        }
+
         List<User> users = userService.getAllUsers();
         return ResponseEntity.ok(ApiResponse.success(users));
     }
@@ -140,9 +154,18 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
+    // 更新头像URL
+    @PutMapping("/{id}/avatar/url")
+    @Operation(summary = "更新用户头像URL")
+    public ResponseEntity<ApiResponse<User>> updateAvatarUrl(@PathVariable Long id,
+            @RequestBody UpdateAvatarRequest request) {
+        User updatedUser = userService.updateAvatarUrl(id, request.getAvatarUrl());
+        return ResponseEntity.ok(ApiResponse.success(updatedUser));
+    }
+
     // 删除用户
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('admin')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @Operation(summary = "删除用户")
     public ResponseEntity<ApiResponse<Void>> deleteUser(@PathVariable Long id) {
         userService.deleteUserById(id);
@@ -153,7 +176,7 @@ public class UserController {
 
     // 在类顶部添加映射
     @PutMapping("/recharge")
-    @PreAuthorize("hasRole('user')")
+    @PreAuthorize("hasAuthority('ROLE_USER')")
     @Operation(summary = "用户充值")
     public ResponseEntity<ApiResponse<Void>> rechargeBalance(@Valid @RequestBody RechargeRequest request) {
         userService.rechargeBalance(request.getUserId(), request.getAmount());

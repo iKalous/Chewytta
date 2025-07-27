@@ -20,10 +20,15 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         if (user == null) {
             throw new UsernameNotFoundException("User not found");
         }
+
+        String authority = "ROLE_" + user.getRole().toUpperCase();
+        System.out.println("Loading user: " + username + ", role: " + user.getRole() + ", authority: " + authority);
+        System.out.println("User authorities will be: [" + authority + "]");
+
         return org.springframework.security.core.userdetails.User
                 .withUsername(user.getUsername())
                 .password(user.getPassword())
-                .authorities("ROLE_" + user.getRole()) // 根据角色设置权限
+                .authorities(authority) // 确保权限为大写
                 .build();
     }
 }

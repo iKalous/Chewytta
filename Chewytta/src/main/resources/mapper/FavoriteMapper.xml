@@ -26,4 +26,23 @@
         DELETE FROM favorites WHERE id = #{id}
     </delete>
 
+    <!-- 检查用户是否已收藏盲盒 -->
+    <select id="isFavorited" resultType="boolean">
+        SELECT COUNT(*) > 0
+        FROM favorites
+        WHERE user_id = #{userId} AND box_id = #{boxId}
+    </select>
+
+    <!-- 添加收藏 -->
+    <insert id="addFavorite">
+        INSERT INTO favorites (user_id, box_id, created_at)
+        VALUES (#{userId}, #{boxId}, NOW())
+    </insert>
+
+    <!-- 取消收藏 -->
+    <delete id="removeFavorite">
+        DELETE FROM favorites
+        WHERE user_id = #{userId} AND box_id = #{boxId}
+    </delete>
+
 </mapper>

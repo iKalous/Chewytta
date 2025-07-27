@@ -1,6 +1,7 @@
 // src/pages/Register.tsx
 import React from 'react';
 import { useForm } from 'react-hook-form';
+import { register as apiRegister } from '../utils/api';
 
 interface RegisterForm {
     username: string;
@@ -18,15 +19,29 @@ const Register: React.FC = () => {
         watch,
     } = useForm<RegisterForm>();
 
-    const onSubmit = (data: RegisterForm) => {
+    const onSubmit = async (data: RegisterForm) => {
         if (data.password !== data.confirmPassword) {
             alert('两次输入的密码不一致');
             return;
         }
 
-        // 模拟注册成功
-        alert('注册成功，请登录');
-        window.location.href = '/login';
+        try {
+            // 调用注册API
+            const response = await apiRegister(
+                data.username,
+                data.email,
+                data.phone,
+                data.password,
+                data.confirmPassword
+            );
+
+            // 注册成功处理
+            alert('注册成功，请登录');
+            window.location.href = '/login';
+        } catch (error) {
+            // 错误处理已在API函数中完成
+            console.error('注册失败:', error);
+        }
     };
 
     const password = watch('password');
@@ -126,7 +141,7 @@ const Register: React.FC = () => {
                     {/* 注册按钮 */}
                     <button
                         type="submit"
-                        className="w-full py-2 mt-2 bg-green-600 text-white rounded hover:bg-green-700"
+                        className="w-full py-2 mt-2 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white rounded"
                     >
                         注册
                     </button>
@@ -134,7 +149,7 @@ const Register: React.FC = () => {
 
                 {/* 登录链接 */}
                 <div className="mt-4 text-center">
-                    <a href="/login" className="text-blue-600 hover:underline">
+                    <a href="/login" className="text-white bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 px-4 py-2 rounded no-underline">
                         ← 已有账号？立即登录
                     </a>
                 </div>

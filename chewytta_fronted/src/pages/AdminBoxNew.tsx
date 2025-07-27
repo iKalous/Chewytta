@@ -1,18 +1,24 @@
 // src/pages/AdminBoxNew.tsx
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { blindBoxes as mockBoxes } from '../data/mockBoxes';
+import { request } from '../utils/api';
+import { showToast } from '../utils/globalToast';
+import { ImageUpload } from '../components/ImageUpload';
+import type { BlindBox, Item } from '../types';
+import useBlindBoxContent from '../hooks/useBlindBoxContent';
 
 const AdminBoxNew: React.FC = () => {
     const navigate = useNavigate();
+    const { refreshBoxes } = useBlindBoxContent();
 
     // 表单状态
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
+    const [image, setImage] = useState(''); // 盲盒封面图片
     const [price, setPrice] = useState<number>(0);
     const [stock, setStock] = useState<number>(0);
     const [isPublished, setIsPublished] = useState(false);
-    const [items, setItems] = useState([
+    const [items, setItems] = useState<Item[]>([
         { id: Date.now(), name: '', image: '' },
         { id: Date.now() + 1, name: '', image: '' },
         { id: Date.now() + 2, name: '', image: '' },
@@ -50,6 +56,7 @@ const AdminBoxNew: React.FC = () => {
             id: Date.now(), // 模拟唯一 ID
             name,
             description,
+            image, // 盲盒封面图片
             price,
             stock,
             isPublished,
@@ -58,23 +65,68 @@ const AdminBoxNew: React.FC = () => {
 
         try {
             await createBox(newBox);
-            alert('新增成功');
+            showToast('新增成功', 'success');
+            refreshBoxes(); // 刷新盲盒列表
             navigate('/admin/boxes');
-        } catch {
-            alert('保存失败，请重试');
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : '保存失败，请重试';
+            showToast(errorMessage, 'error');
         } finally {
             setLoading(false);
         }
     };
+    // 调用 API 创建盲盒
+    const createBox = async (newBox: BlindBox) => {
+        const items = newBox.items || [];
+        console.log('Items to create:', items);
 
-    // 模拟 API 请求
-    const createBox = async (newBox: typeof mockBoxes[0]) => {
-        return new Promise<void>((resolve) => {
-            setTimeout(() => {
-                mockBoxes.push(newBox);
-                resolve();
-            }, 800);
-        });
+        // 验证并准备盲盒数据（包含items）
+        const requestData = {
+            name: name,
+            description: description,
+            image: image, // 盲盒封面图片
+            price: price,
+            stock: stock,
+            isPublished: isPublished,
+            items: items.map(item => ({
+                id: item.id !== undefined ? item.id : 0,
+                name: item.name || '',
+                image: item.image || ''
+            }))
+        };
+        console.log('Create box request data:', requestData);
+
+        // 设置请求超时（5秒）
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+        try {
+            const data = await request('/admin/boxes', 'POST', requestData, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                signal: controller.signal
+            });
+            clearTimeout(timeoutId);
+            return data;
+        } catch (error) {
+            clearTimeout(timeoutId);
+            console.error('创建盲盒失败:', error);
+
+            let errorMessage = '创建盲盒失败: ';
+            if (error instanceof Error) {
+                if (error.name === 'AbortError') {
+                    errorMessage += '请求超时，请重试';
+                } else {
+                    errorMessage += error.message;
+                }
+            } else {
+                errorMessage += '未知错误';
+            }
+
+            throw new Error(errorMessage);
+        }
     };
 
     return (
@@ -107,6 +159,18 @@ const AdminBoxNew: React.FC = () => {
                         ></textarea>
                     </div>
 
+                    {/* 封面图片 */}
+                    <div className="mb-4">
+                        <label className="block text-sm font-medium mb-1">封面图片</label>
+                        <ImageUpload
+                            value={image}
+                            onChange={setImage}
+                            category="box"
+                            placeholder="点击上传盲盒封面图片"
+                            className="w-full"
+                        />
+                    </div>
+
                     {/* 价格 & 库存 */}
                     <div className="grid grid-cols-2 gap-4 mb-4">
                         <div>
@@ -114,7 +178,7 @@ const AdminBoxNew: React.FC = () => {
                             <input
                                 type="number"
                                 value={price}
-                                onChange={(e) => setPrice(parseFloat(e.target.value))}
+                                onChange={(e) => setPrice(e.target.value ? parseFloat(e.target.value) : 0)}
                                 className="w-full p-2 border border-gray-300 rounded"
                                 min="0"
                                 step="0.01"
@@ -126,7 +190,7 @@ const AdminBoxNew: React.FC = () => {
                             <input
                                 type="number"
                                 value={stock}
-                                onChange={(e) => setStock(parseInt(e.target.value))}
+                                onChange={(e) => setStock(e.target.value ? parseInt(e.target.value) : 0)}
                                 className="w-full p-2 border border-gray-300 rounded"
                                 min="0"
                                 required
@@ -178,12 +242,13 @@ const AdminBoxNew: React.FC = () => {
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium mb-1">图片链接</label>
-                                        <input
-                                            type="text"
+                                        <label className="block text-sm font-medium mb-1">款式图片</label>
+                                        <ImageUpload
                                             value={item.image}
-                                            onChange={(e) => handleItemChange(item.id, 'image', e.target.value)}
-                                            className="w-full p-2 border border-gray-300 rounded"
+                                            onChange={(url) => handleItemChange(item.id, 'image', url)}
+                                            category="item"
+                                            placeholder="点击上传款式图片"
+                                            className="w-full"
                                         />
                                     </div>
                                 </div>
@@ -207,7 +272,8 @@ const AdminBoxNew: React.FC = () => {
                 </form>
             </div>
         </div>
-    );
+    )
 };
+
 
 export default AdminBoxNew;

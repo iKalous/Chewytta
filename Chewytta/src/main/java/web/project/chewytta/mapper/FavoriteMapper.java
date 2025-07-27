@@ -20,4 +20,13 @@ public interface FavoriteMapper {
 
     // 删除收藏
     int deleteById(Long id);
+
+    // 检查用户是否已收藏盲盒
+    boolean isFavorited(@Param("userId") Long userId, @Param("boxId") Long boxId);
+
+    // 添加收藏
+    int addFavorite(@Param("userId") Long userId, @Param("boxId") Long boxId);
+
+    // 取消收藏
+    int removeFavorite(@Param("userId") Long userId, @Param("boxId") Long boxId);
 }

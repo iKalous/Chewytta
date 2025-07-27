@@ -2,13 +2,16 @@
 import './index.css';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { createBrowserRouter } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+
+// 导入ThemeProvider
+import ThemeProvider from './components/ThemeProvider';
 
 // 页面组件
-import Login from './pages/Login';
+import Login from './pages/LoginImproved';
 import Home from './pages/Home';
 import BoxDetail from './pages/BoxDetail';
-import BoxResultPage from './pages/BoxResultPage';
+import BoxResult from './pages/BoxResult';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminBoxesList from './pages/AdminBoxesList';
 import AdminBoxNew from './pages/AdminBoxNew';
@@ -16,18 +19,22 @@ import AdminBoxEdit from './pages/AdminBoxEdit';
 import UserProfile from './pages/UserProfile';
 import UserFavorites from './pages/UserFavorites';
 import UserBoxes from './pages/UserBoxes';
+import TestUserBoxes from './pages/TestUserBoxes';
+import DrawnBoxesDebug from './pages/DrawnBoxesDebug';
+import SimpleTest from './pages/SimpleTest';
 import AdminUserPage from './pages/AdminUserPage';
 import AdminUsersList from './pages/AdminUsersList';
 import Register from './pages/Register';
 import ErrorPage from './pages/ErrorPage';
+import RechargePage from './pages/RechargePage';
 
 // 组件
 import ProtectedRoute from './components/ProtectedRoute';
+import RootRedirect from './components/RootRedirect';
 import { ToastProvider } from './components/ToastProvider';
 import ErrorBoundary from './components/ErrorBoundary';
-
-// 引入 Context Provider
-import { BlindBoxProvider } from './context/BlindBoxContent.tsx';
+import { BlindBoxProvider } from './context';
+import { UserProvider } from './context/UserContent';
 
 // 创建路由
 const router = createBrowserRouter([
@@ -43,19 +50,46 @@ const router = createBrowserRouter([
         path: '/',
         element: (
             <ErrorBoundary>
-                <ProtectedRoute>
-                    <Home />
-                </ProtectedRoute>
+                <RootRedirect />
             </ErrorBoundary>
         ),
     },
     {
-        path: '/box/:id',
+        path: '/home',
         element: (
             <ErrorBoundary>
-                <ProtectedRoute>
-                    <BoxDetail />
-                </ProtectedRoute>
+
+                <BlindBoxProvider>
+                    <ProtectedRoute>
+                        <Home />
+                    </ProtectedRoute>
+                </BlindBoxProvider>
+
+            </ErrorBoundary>
+        ),
+    },
+    {
+        path: '/box/:id', element: (
+            <ErrorBoundary>
+                <ThemeProvider>
+                    <BlindBoxProvider>
+                        <ProtectedRoute>
+                            <BoxDetail />
+                        </ProtectedRoute>
+                    </BlindBoxProvider>
+                </ThemeProvider>
+            </ErrorBoundary>
+        ),
+    }, {
+        path: '/box/:id/result', element: (
+            <ErrorBoundary>
+                <ThemeProvider>
+                    <BlindBoxProvider>
+                        <ProtectedRoute>
+                            <BoxResult />
+                        </ProtectedRoute>
+                    </BlindBoxProvider>
+                </ThemeProvider>
             </ErrorBoundary>
         ),
     },
@@ -63,9 +97,11 @@ const router = createBrowserRouter([
         path: '/admin',
         element: (
             <ErrorBoundary>
+
                 <ProtectedRoute requireAdmin={true}>
                     <AdminDashboard />
                 </ProtectedRoute>
+
             </ErrorBoundary>
         ),
     },
@@ -73,9 +109,13 @@ const router = createBrowserRouter([
         path: '/admin/boxes',
         element: (
             <ErrorBoundary>
-                <ProtectedRoute requireAdmin={true}>
-                    <AdminBoxesList />
-                </ProtectedRoute>
+
+                <BlindBoxProvider>
+                    <ProtectedRoute requireAdmin={true}>
+                        <AdminBoxesList />
+                    </ProtectedRoute>
+                </BlindBoxProvider>
+
             </ErrorBoundary>
         ),
     },
@@ -83,9 +123,13 @@ const router = createBrowserRouter([
         path: '/admin/boxes/new',
         element: (
             <ErrorBoundary>
-                <ProtectedRoute requireAdmin={true}>
-                    <AdminBoxNew />
-                </ProtectedRoute>
+
+                <BlindBoxProvider>
+                    <ProtectedRoute requireAdmin={true}>
+                        <AdminBoxNew />
+                    </ProtectedRoute>
+                </BlindBoxProvider>
+
             </ErrorBoundary>
         ),
     },
@@ -93,9 +137,13 @@ const router = createBrowserRouter([
         path: '/admin/boxes/edit/:id',
         element: (
             <ErrorBoundary>
-                <ProtectedRoute requireAdmin={true}>
-                    <AdminBoxEdit />
-                </ProtectedRoute>
+
+                <BlindBoxProvider>
+                    <ProtectedRoute requireAdmin={true}>
+                        <AdminBoxEdit />
+                    </ProtectedRoute>
+                </BlindBoxProvider>
+
             </ErrorBoundary>
         ),
     },
@@ -119,14 +167,7 @@ const router = createBrowserRouter([
             </ErrorBoundary>
         ),
     },
-    {
-        path: '/box/:id/result',
-        element: (
-            <ErrorBoundary>
-                <BoxResultPage />
-            </ErrorBoundary>
-        ),
-    },
+    // 删除重复路由配置 - 已在上方正确配置,
     {
         path: '/user/profile',
         element: (
@@ -166,6 +207,30 @@ const router = createBrowserRouter([
         ),
     },
     {
+        path: '/test',
+        element: (
+            <ErrorBoundary>
+                <TestUserBoxes />
+            </ErrorBoundary>
+        ),
+    },
+    {
+        path: '/debug-drawn',
+        element: (
+            <ErrorBoundary>
+                <DrawnBoxesDebug />
+            </ErrorBoundary>
+        ),
+    },
+    {
+        path: '/simple-test',
+        element: (
+            <ErrorBoundary>
+                <SimpleTest />
+            </ErrorBoundary>
+        ),
+    },
+    {
         path: '/error',
         element: (
             <ErrorBoundary>
@@ -188,15 +253,18 @@ const router = createBrowserRouter([
 
 // App 根组件
 import App from './App';
-import RechargePage from "./pages/RechargePage";
 
-// 渲染入口
+// 渲染应用
 ReactDOM.createRoot(document.getElementById('root')!).render(
     <React.StrictMode>
         <ToastProvider>
-            <BlindBoxProvider> {/* ✅ 这里包裹整个 App */}
-                <App router={router} />
-            </BlindBoxProvider>
+            <UserProvider>
+                <ThemeProvider>
+                    <App router={router} />
+                </ThemeProvider>
+            </UserProvider>
         </ToastProvider>
     </React.StrictMode>
 );
+
+// 渲染入口 - 已合并到上方的渲染代码中

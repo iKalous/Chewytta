@@ -20,6 +20,8 @@ public class UserService {
     private UserMapper userMapper;
     @Autowired
     private PasswordEncoder passwordEncoder;
+    @Autowired
+    private FileUploadService fileUploadService;
 
     // 根据ID查询用户
     public User getUserById(Long id) {
@@ -56,8 +58,6 @@ public class UserService {
         return userMapper.insert(user);
     }
 
-
-
     // 用户登录验证
     public User login(String account, String password) {
         // 从数据库中根据 account 获取用户
@@ -79,8 +79,6 @@ public class UserService {
         return user;
     }
 
-
-
     // 更新用户信息
     public int updateUser(User user) {
         return userMapper.update(user);
@@ -100,26 +98,57 @@ public class UserService {
         return userMapper.updatePassword(id, passwordEncoder.encode(newPassword));
     }
 
-
     // 修改昵称
     public int changeNickname(Long id, String nickname) {
         return userMapper.updateNickname(id, nickname);
     }
 
-    // 示例：模拟头像上传到某个路径
+    // 上传和更新用户头像
     public String updateAvatar(Long id, MultipartFile file) {
-        // 实际应使用文件存储服务如 OSS / MinIO / 本地存储等
-        String url = "https://example.com/avatars/" + id + ".jpg";
-        // TODO: 实际保存文件逻辑
-        userMapper.updateAvatar(id, url);
-        return url;
+        // 删除旧头像
+        User user = userMapper.selectById(id);
+        if (user != null && user.getAvatar() != null) {
+            fileUploadService.deleteFile(user.getAvatar());
+        }
+
+        // 上传新头像
+        String avatarUrl = fileUploadService.uploadFile(file, "avatar");
+
+        // 更新数据库
+        userMapper.updateAvatar(id, avatarUrl);
+
+        return avatarUrl;
     }
 
+    // 更新用户头像URL（仅更新数据库中的URL）
+    public User updateAvatarUrl(Long id, String avatarUrl) {
+        // 验证用户是否存在
+        User user = userMapper.selectById(id);
+        if (user == null) {
+            throw new IllegalArgumentException("用户不存在");
+        }
+
+        // 更新数据库中的头像URL
+        userMapper.updateAvatar(id, avatarUrl);
+
+        // 返回更新后的用户对象
+        user.setAvatar(avatarUrl);
+        return user;
+    }
 
     // web/project/chewytta/service/UserService.java
 
+    // 获取用户余额
+    public BigDecimal getUserBalance(Long userId) {
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            throw new IllegalArgumentException("用户不存在");
+        }
+        return user.getBalance();
+    }
+
     // 添加充值方法
-    public int rechargeBalance(Long userId, BigDecimal amount) {
+    public BigDecimal rechargeBalance(Long userId, BigDecimal amount) {
         if (amount.compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("充值金额必须大于0");
         }
@@ -130,9 +159,9 @@ public class UserService {
         }
 
         BigDecimal newBalance = user.getBalance().add(amount);
-        return userMapper.updateBalance(userId, newBalance);
+        userMapper.updateBalance(userId, newBalance);
+        return newBalance;
     }
-
 
     /**
      * 扣除用户余额
@@ -161,6 +190,5 @@ public class UserService {
 
         return newBalance;
     }
-
 
 }

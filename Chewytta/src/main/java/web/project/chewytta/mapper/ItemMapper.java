@@ -28,4 +28,7 @@ public interface ItemMapper {
 
     // 按盲盒ID删除所有款式
     int deleteByBoxId(Long boxId);
+
+    // 检查某个款式是否被抽中过（是否在 drawn_boxes 中有引用）
+    boolean isItemReferenced(Long itemId);
 }

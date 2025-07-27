@@ -1,6 +1,6 @@
 // src/hooks/useBlindBoxContent.ts
 import { useContext } from 'react';
-import { BlindBoxContext } from '../context/BlindBoxContent'; // ✅ 这里要确保路径正确
+import { BlindBoxContext } from '../context/BlindBoxContext'; // ✅ 这里要确保路径正确
 
 const useBlindBoxContext = () => {
     const context = useContext(BlindBoxContext);

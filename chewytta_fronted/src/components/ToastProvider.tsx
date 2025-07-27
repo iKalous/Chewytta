@@ -1,8 +1,7 @@
 // src/components/ToastProvider.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { ToastContext } from '../context/ToastContext';
 import Toast from './Toast';
-import { globalToast } from '../utils/globalToast';
 
 export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [showToast, setShowToast] = useState(false);
@@ -12,12 +11,8 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         setTimeout(() => setShowToast(false), 3000);
     };
 
-    // 初始化全局方法
-    useEffect(() => {
-        globalToast.show = () => {
-            showPermissionDeniedToast();
-        };
-    }, []);
+    // 不需要额外的初始化逻辑
+    // 通过Context提供showPermissionDeniedToast方法供子组件使用
 
     return (
         <ToastContext.Provider value={{ showPermissionDeniedToast }}>

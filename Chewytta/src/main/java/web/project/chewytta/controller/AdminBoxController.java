@@ -19,7 +19,7 @@ import java.util.List;
 @RequestMapping("/api/admin/boxes")
 @Tag(name = "管理员 - 盲盒管理", description = "管理员对盲盒进行增删改查操作")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('admin')") // 整个控制器都需要管理员权限
+@PreAuthorize("hasAuthority('ROLE_ADMIN')") // 整个控制器都需要管理员权限
 public class AdminBoxController {
 
     private final AdminBoxService adminBoxService;
@@ -33,9 +33,21 @@ public class AdminBoxController {
     @GetMapping
     @Operation(summary = "获取所有盲盒（包含款式）")
     public List<BlindBox> getAllBoxesWithItems() {
+        System.out.println("AdminBoxController.getAllBoxesWithItems() called");
+
+        // 打印当前认证信息
+        org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder
+                .getContext().getAuthentication();
+        if (auth != null) {
+            System.out.println("Current user: " + auth.getName());
+            System.out.println("Authorities: " + auth.getAuthorities());
+            System.out.println("Principal: " + auth.getPrincipal());
+        } else {
+            System.out.println("No authentication found in SecurityContext");
+        }
+
         return adminBoxService.getAllBlindBoxWithItems();
     }
-
 
     /**
      * 根据ID获取盲盒详情（含款式）
@@ -51,8 +63,8 @@ public class AdminBoxController {
      */
     @PostMapping
     @Operation(summary = "添加盲盒及其包含的款式")
-    public ResponseEntity<Integer> createBoxWithItems(@RequestBody BlindBox blindBox,
-                                                      @RequestParam List<Item> items) {
+    public ResponseEntity<Integer> createBoxWithItems(@RequestBody BlindBox blindBox) {
+        List<Item> items = blindBox.getItems();
         int result = adminBoxService.addBlindBoxWithItems(blindBox, items);
         return ResponseEntity.ok(result);
     }
@@ -62,12 +74,16 @@ public class AdminBoxController {
      */
     @PutMapping("/{id}")
     @Operation(summary = "更新盲盒信息及其款式")
-    public ResponseEntity<Integer> updateBoxWithItems(@PathVariable Long id,
-                                                      @RequestBody BlindBox blindBox,
-                                                      @RequestParam List<Item> items) {
-        blindBox.setId(id);
-        int result = adminBoxService.updateBlindBoxWithItems(blindBox, items);
-        return ResponseEntity.ok(result);
+    public ResponseEntity<?> updateBoxWithItems(@PathVariable Long id,
+            @RequestBody BlindBox blindBox) {
+        try {
+            blindBox.setId(id);
+            List<Item> items = blindBox.getItems();
+            int result = adminBoxService.updateBlindBoxWithItems(blindBox, items);
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("更新失败: " + e.getMessage());
+        }
     }
 
     /**
@@ -75,9 +91,12 @@ public class AdminBoxController {
      */
     @DeleteMapping("/{id}")
     @Operation(summary = "删除盲盒及其所有关联款式")
-    public ResponseEntity<Integer> deleteBoxWithItems(@PathVariable Long id) {
-        int result = adminBoxService.deleteBlindBoxWithItems(id);
-        return ResponseEntity.ok(result);
+    public ResponseEntity<?> deleteBoxWithItems(@PathVariable Long id) {
+        try {
+            int result = adminBoxService.deleteBlindBoxWithItems(id);
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("删除失败: " + e.getMessage());
+        }
     }
 }
-

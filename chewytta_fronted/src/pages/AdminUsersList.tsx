@@ -1,17 +1,20 @@
 // src/pages/AdminUsersList.tsx
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
-
-// 模拟用户列表
-const mockUsers = [
-    { id: 1, username: '用户123', email: 'user1@example.com', role: 'user' },
-    { id: 2, username: '测试账号', email: 'test@example.com', role: 'user' },
-];
+import useUserContent from '../hooks/useUserContent';
+import { showToast } from '../utils/globalToast';
 
 const AdminUsersList: React.FC = () => {
-    const handleDelete = (id: number) => {
-        if (window.confirm('确定要删除这个用户吗？')) {
-            alert(`用户 ${id} 删除成功`);
+    const { users, loading, error, deleteUser } = useUserContent();
+
+    const handleDelete = async (id: number, username: string) => {
+        if (window.confirm(`确定要删除用户 ${username} 吗？`)) {
+            try {
+                await deleteUser(id);
+                showToast('用户删除成功', 'success');
+            } catch (err) {
+                showToast('用户删除失败: ' + (err instanceof Error ? err.message : '未知错误'), 'error');
+            }
         }
     };
 
@@ -20,33 +23,69 @@ const AdminUsersList: React.FC = () => {
             <div className="container mx-auto px-4 max-w-4xl">
                 <h1 className="text-2xl font-bold text-center mb-6">用户管理</h1>
 
-                <div className="overflow-x-auto">
-                    <table className="w-full table-auto border-collapse">
-                        <thead>
-                        <tr className="bg-gray-100">
-                            <th className="border px-4 py-2 text-left">用户名</th>
-                            <th className="border px-4 py-2 text-left">邮箱</th>
-                            <th className="border px-4 py-2 text-left">操作</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        {mockUsers.map((user) => (
-                            <tr key={user.id} className="hover:bg-gray-50">
-                                <td className="border px-4 py-2">{user.username}</td>
-                                <td className="border px-4 py-2">{user.email}</td>
-                                <td className="border px-4 py-2 space-x-2">
-                                    <button
-                                        onClick={() => handleDelete(user.id)}
-                                        className="text-red-600 hover:text-red-800"
-                                    >
-                                        删除
-                                    </button>
-                                </td>
+                {/* 错误处理 */}
+                {error && (
+                    <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">
+                        {error}
+                    </div>
+                )}
+
+                {/* 加载状态 */}
+                {loading ? (
+                    <div className="text-center py-10">
+                        <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-green-600"></div>
+                        <p className="mt-2 text-gray-600">加载中...</p>
+                    </div>
+                ) : (
+                    <div className="overflow-x-auto">
+                        <table className="w-full table-auto border-collapse">
+                            <thead>
+                            <tr className="bg-gray-100">
+                                <th className="border px-4 py-2 text-left">ID</th>
+                                <th className="border px-4 py-2 text-left">用户名</th>
+                                <th className="border px-4 py-2 text-left">昵称</th>
+                                <th className="border px-4 py-2 text-left">邮箱</th>
+                                <th className="border px-4 py-2 text-left">手机号</th>
+                                <th className="border px-4 py-2 text-left">余额</th>
+                                <th className="border px-4 py-2 text-left">角色</th>
+                                <th className="border px-4 py-2 text-left">注册时间</th>
+                                <th className="border px-4 py-2 text-left">操作</th>
                             </tr>
-                        ))}
-                        </tbody>
-                    </table>
-                </div>
+                            </thead>
+                            <tbody>
+                            {users.map((user) => (
+                                <tr key={user.id} className="hover:bg-gray-50">
+                                    <td className="border px-4 py-2">{user.id}</td>
+                                    <td className="border px-4 py-2 font-medium">{user.username}</td>
+                                    <td className="border px-4 py-2">{user.nickname || '-'}</td>
+                                    <td className="border px-4 py-2">{user.email}</td>
+                                    <td className="border px-4 py-2">{user.phone || '-'}</td>
+                                    <td className="border px-4 py-2">¥{(user.balance || 0).toFixed(2)}</td>
+                                    <td className="border px-4 py-2">
+                                        <span className={`px-2 py-1 rounded text-xs ${
+                                            user.role === 'ADMIN' ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
+                                        }`}>
+                                            {user.role === 'ADMIN' ? '管理员' : '普通用户'}
+                                        </span>
+                                    </td>
+                                    <td className="border px-4 py-2 text-sm">
+                                        {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : '-'}
+                                    </td>
+                                    <td className="border px-4 py-2 space-x-1">
+                                        <button
+                                            onClick={() => handleDelete(user.id, user.username)}
+                                            className="text-red-600 hover:text-red-800 px-2 py-1 text-sm"
+                                            title="删除用户"
+                                        >
+                                            删除
+                                        </button>
+                                    </td>
+                                </tr>
+                            ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
 
                 <div className="mt-6 text-center">
                     <Link to="/admin" className="text-blue-600 hover:underline">

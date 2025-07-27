@@ -1,0 +1,52 @@
+# 项目忽略文件
+
+# 临时文件和缓存
+*.tmp
+*.temp
+*.cache
+*.log
+*.lock
+.DS_Store
+Thumbs.db
+
+# IDE和编辑器文件
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 本地配置文件
+*.local
+.env.local
+.env.*.local
+
+# 构建输出和缓存
+node_modules/
+dist/
+build/
+target/classes/
+target/generated-sources/
+target/generated-test-sources/
+target/maven-archiver/
+target/maven-status/
+target/test-classes/
+*.tsbuildinfo
+
+# 用户上传的文件和数据
+ChewyApp/userdata/uploads/*/
+ChewyApp/userdata/avatars/*/
+ChewyApp/cache/data/
+ChewyApp/cache/images/
+ChewyApp/logs/*.log
+AdminContent/temp/
+AdminContent/boxes/items/*/
+AdminContent/boxes/covers/*/
+Chewytta/uploads/avatar/
+Chewytta/uploads/box/
+Chewytta/uploads/item/
+
+# 打包生成的文件
+*.zip
+*.tar.gz
+Chewytta-v*.*/

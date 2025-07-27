@@ -10,6 +10,7 @@ public class BlindBox {
 
     private Long id;
     private String name;
+    private String image; // 盲盒封面图片
     private BigDecimal price; // 使用 BigDecimal 表示精确金额
     private Integer stock; // 库存数量
     private Boolean isPublished; // 是否上架

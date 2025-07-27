@@ -2,8 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/chewytta_fronted/chewytta_fronted.iml" filepath="$PROJECT_DIR$/chewytta_fronted/chewytta_fronted.iml" />
-      <module fileurl="file://$PROJECT_DIR$/project.iml" filepath="$PROJECT_DIR$/project.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/Chewytta.iml" filepath="$PROJECT_DIR$/.idea/Chewytta.iml" />
     </modules>
   </component>
 </project>

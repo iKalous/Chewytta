@@ -49,7 +49,7 @@ const AdminUserPage: React.FC = () => {
 
                 <div className="mt-8 text-center">
                     <button
-                        onClick={() => navigate('/')}
+                        onClick={() => navigate('/home')}
                         className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
                     >
                         返回首页

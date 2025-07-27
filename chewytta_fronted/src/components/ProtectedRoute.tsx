@@ -1,7 +1,7 @@
 // ProtectedRoute.tsx
 import React, { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
-import { globalToast } from '../utils/globalToast';
+import { showToast } from '../utils/globalToast';
 import NoPermission from '../pages/NoPermission'; // 引入新页面
 
 const isAuthenticated = () => {
@@ -9,8 +9,8 @@ const isAuthenticated = () => {
 };
 
 const isAdmin = () => {
-    return localStorage.getItem('role') === 'admin';
-};
+        return localStorage.getItem('role')?.toUpperCase() === 'ADMIN';
+    };
 
 interface ProtectedRouteProps {
     children: React.ReactNode;
@@ -29,7 +29,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requireAdmin 
 
         if (requireAdmin && !isAdmin()) {
             setNoPermission(true); // 直接进入无权限状态
-            globalToast.show();
+            showToast('您没有管理员权限', 'error');
         }
     }, [requireAdmin]);
 

@@ -1,18 +1,32 @@
-// src/components/ProtectedRoute.tsx
+// src/routes/router.tsx
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 
-// 模拟登录状态（后续可改为真实状态）
+// 检查登录状态
 const isAuthenticated = () => {
-    return false; // 默认未登录
+    return localStorage.getItem('isLoggedIn') === 'true';
+};
+
+// 检查是否为管理员
+const isAdmin = () => {
+    return localStorage.getItem('role')?.toUpperCase() === 'ADMIN';
 };
 
 interface ProtectedRouteProps {
     children: React.ReactNode;
+    requireAdmin?: boolean;
 }
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-    return isAuthenticated() ? <>{children}</> : <Navigate to="/login" />;
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requireAdmin = false }) => {
+    if (!isAuthenticated()) {
+        return <Navigate to="/login" />;
+    }
+
+    if (requireAdmin && !isAdmin()) {
+        return <Navigate to="/no-permission" />;
+    }
+
+    return <>{children}</>;
 };
 
 export default ProtectedRoute;

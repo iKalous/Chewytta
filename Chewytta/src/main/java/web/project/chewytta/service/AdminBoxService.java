@@ -8,7 +8,9 @@ import web.project.chewytta.mapper.ItemMapper;
 import web.project.chewytta.model.BlindBox;
 import web.project.chewytta.model.Item;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class AdminBoxService {
@@ -29,7 +31,6 @@ public class AdminBoxService {
         }
         return boxes;
     }
-
 
     /**
      * 添加盲盒及其包含的款式（事务控制）
@@ -58,14 +59,57 @@ public class AdminBoxService {
     public int updateBlindBoxWithItems(BlindBox blindBox, List<Item> items) {
         int boxResult = blindBoxMapper.updateBox(blindBox);
 
-        // 先删除原有款式
-        itemMapper.deleteByBoxId(blindBox.getId());
+        // 获取原有款式
+        List<Item> existingItems = itemMapper.selectByBoxId(blindBox.getId());
 
-        // 插入新款式
+        // 分离新款式和已有款式
+        List<Item> newItems = new ArrayList<>();
+        List<Item> updateItems = new ArrayList<>();
+        List<Long> existingItemIds = existingItems.stream().map(Item::getId).collect(Collectors.toList());
+
         for (Item item : items) {
             item.setBoxId(blindBox.getId());
+            if (item.getId() != null && item.getId() > 0 && existingItemIds.contains(item.getId())) {
+                // 已有款式，需要更新
+                updateItems.add(item);
+            } else {
+                // 新款式，需要插入
+                item.setId(null); // 确保新款式的ID为null，让数据库自动生成
+                newItems.add(item);
+            }
         }
-        int itemResult = itemMapper.insertItems(items);
+
+        // 找出需要删除的款式（原有但不在当前列表中的）
+        List<Long> currentItemIds = items.stream()
+                .filter(item -> item.getId() != null && item.getId() > 0)
+                .map(Item::getId)
+                .collect(Collectors.toList());
+        List<Long> itemsToDelete = existingItemIds.stream()
+                .filter(id -> !currentItemIds.contains(id))
+                .collect(Collectors.toList());
+
+        int itemResult = 0;
+
+        // 删除不再需要的款式，但只删除那些没有被抽中过的款式
+        for (Long itemId : itemsToDelete) {
+            // 检查该款式是否被用户抽中过
+            if (!itemMapper.isItemReferenced(itemId)) {
+                itemResult += itemMapper.deleteItemById(itemId);
+            } else {
+                // 如果款式已被抽中，记录日志但不删除
+                System.out.println("款式 ID " + itemId + " 已被用户抽中，无法删除");
+            }
+        }
+
+        // 更新已有款式
+        for (Item item : updateItems) {
+            itemResult += itemMapper.updateItem(item);
+        }
+
+        // 插入新款式
+        if (!newItems.isEmpty()) {
+            itemResult += itemMapper.insertItems(newItems);
+        }
 
         return boxResult + itemResult;
     }
@@ -75,9 +119,16 @@ public class AdminBoxService {
      */
     @Transactional(rollbackFor = Exception.class)
     public int deleteBlindBoxWithItems(Long id) {
-        // 删除款式
+        // 先检查该盲盒下是否有被抽中过的款式
+        List<Item> boxItems = itemMapper.selectByBoxId(id);
+        for (Item item : boxItems) {
+            if (itemMapper.isItemReferenced(item.getId())) {
+                throw new RuntimeException("无法删除盲盒：盒子中的款式 '" + item.getName() + "' 已被用户抽中");
+            }
+        }
+
+        // 如果没有被引用的款式，则可以安全删除
         itemMapper.deleteByBoxId(id);
-        // 删除盲盒
         return blindBoxMapper.deleteBox(id);
     }
 

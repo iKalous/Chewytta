@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  # MySQL数据库
+  mysql:
+    image: mysql:8.0
+    container_name: chewytta-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root123456
+      MYSQL_DATABASE: chewytta
+      MYSQL_USER: chewytta
+      MYSQL_PASSWORD: chewytta123
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - chewytta-network
+    restart: unless-stopped
+
+  # 后端服务
+  backend:
+    build:
+      context: ./Chewytta
+      dockerfile: Dockerfile
+    container_name: chewytta-backend
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/chewytta?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai
+      - SPRING_DATASOURCE_USERNAME=chewytta
+      - SPRING_DATASOURCE_PASSWORD=chewytta123
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mysql
+    volumes:
+      - ./ChewyApp:/app/ChewyApp
+      - ./AdminContent:/app/AdminContent
+    networks:
+      - chewytta-network
+    restart: unless-stopped
+
+volumes:
+  mysql_data:
+
+
+networks:
+  chewytta-network:
+    driver: bridge
